@@ -1,0 +1,29 @@
+---
+title: 'Topics in Labor & Demo: Midterm Problem Set'
+author: "Gustavo Henrique"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+## Step 1: Importing needed packages
+
+```{r}
+pacman::p_load("tidyverse",
+               "estimatr",
+               "stats",
+               "stargazer",
+               "haven",
+               "here")
+```
+
+## Step 2: Importing databases
+
+```{r}
+viv = read.csv(here("Data", "VIVT110.csv"))
+hog = read.csv(here("Data", "HOGT110.csv"))
+sdem = read.csv(here("Data", "SDEMT110.csv"))
+coe1 = read.csv(here("Data", "COE1T110.csv"))
+coe2 = read.csv(here("Data", "COE2T110.csv"))
+```
+
+## Step 3: Cleaning databases
