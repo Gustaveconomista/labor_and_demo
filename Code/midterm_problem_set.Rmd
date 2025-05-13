@@ -23,33 +23,33 @@ pacman::p_load(tidyverse,
 
 ```{r}
 # SDEM data
-sdem2010 = read.csv(here("Data", "SDEMT110.csv"))
-sdem2011 = read.csv(here("Data", "SDEMT111.csv"))
-sdem2012 = read.csv(here("Data", "SDEMT112.csv"))
-sdem2013 = read.csv(here("Data", "SDEMT113.csv"))
-sdem2014 = read.csv(here("Data", "SDEMT114.csv"))
-sdem2015 = read.csv(here("Data", "SDEMT115.csv"))
-sdem2016 = read.csv(here("Data", "SDEMT116.csv"))
-sdem2017 = read.csv(here("Data", "SDEMT117.csv"))
-sdem2018 = read.csv(here("Data", "SDEMT118.csv"))
-sdem2019 = read.csv(here("Data", "SDEMT119.csv"))
-sdem2020 = read.csv(here("Data", "ENOE_SDEMT120.csv"))
+sdem2010 = read.csv(here("Data/Raw", "SDEMT110.csv"))
+sdem2011 = read.csv(here("Data/Raw", "SDEMT111.csv"))
+sdem2012 = read.csv(here("Data/Raw", "SDEMT112.csv"))
+sdem2013 = read.csv(here("Data/Raw", "SDEMT113.csv"))
+sdem2014 = read.csv(here("Data/Raw", "SDEMT114.csv"))
+sdem2015 = read.csv(here("Data/Raw", "SDEMT115.csv"))
+sdem2016 = read.csv(here("Data/Raw", "SDEMT116.csv"))
+sdem2017 = read.csv(here("Data/Raw", "SDEMT117.csv"))
+sdem2018 = read.csv(here("Data/Raw", "SDEMT118.csv"))
+sdem2019 = read.csv(here("Data/Raw", "SDEMT119.csv"))
+sdem2020 = read.csv(here("Data/Raw", "ENOE_SDEMT120.csv"))
 
-# COE2 data
-coe22010 = read.csv(here("Data", "COE2T110.csv"))
-coe22011 = read.csv(here("Data", "COE2T111.csv"))
-coe22012 = read.csv(here("Data", "COE2T112.csv"))
-coe22013 = read.csv(here("Data", "COE2T113.csv"))
-coe22014 = read.csv(here("Data", "COE2T114.csv"))
-coe22015 = read.csv(here("Data", "COE2T115.csv"))
-coe22016 = read.csv(here("Data", "COE2T116.csv"))
-coe22017 = read.csv(here("Data", "COE2T117.csv"))
-coe22018 = read.csv(here("Data", "COE2T118.csv"))
-coe22019 = read.csv(here("Data", "COE2T119.csv"))
-coe22020 = read.csv(here("Data", "ENOE_COE2T120.csv"))
+# COE2 Data
+coe22010 = read.csv(here("Data/Raw", "COE2T110.csv"))
+coe22011 = read.csv(here("Data/Raw", "COE2T111.csv"))
+coe22012 = read.csv(here("Data/Raw", "COE2T112.csv"))
+coe22013 = read.csv(here("Data/Raw", "COE2T113.csv"))
+coe22014 = read.csv(here("Data/Raw", "COE2T114.csv"))
+coe22015 = read.csv(here("Data/Raw", "COE2T115.csv"))
+coe22016 = read.csv(here("Data/Raw", "COE2T116.csv"))
+coe22017 = read.csv(here("Data/Raw", "COE2T117.csv"))
+coe22018 = read.csv(here("Data/Raw", "COE2T118.csv"))
+coe22019 = read.csv(here("Data/Raw", "COE2T119.csv"))
+coe22020 = read.csv(here("Data/Raw", "ENOE_COE2T120.csv"))
 
-# Price index data
-mexcpi = read_excel(here("Data", "MEXCPIALLAINMEI.xlsx"), 
+# Price index Data
+mexcpi = read_excel(here("Data/Raw", "MEXCPIALLAINMEI.xlsx"), 
                      sheet = "Annual")
 ```
 
@@ -106,6 +106,13 @@ rm(coe22010,
    coe22018,
    coe22019,
    coe22020)
+
+# Cleaning memory
+gc()
+
+# Exporting concatenated datasets
+write_csv(sdem, here("Data/Final", "sdem.csv"))
+write_csv(coe2, here("Data/Final", "coe2.csv"))
 
 # Cleaning memory
 gc()
