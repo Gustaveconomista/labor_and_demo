@@ -5,25 +5,108 @@ date: '`r Sys.Date()`'
 output: html_document
 ---
 
-## Step 1: Importing needed packages
+## Loading/Installing needed packages
 
 ```{r}
-pacman::p_load("tidyverse",
-               "estimatr",
-               "stats",
-               "stargazer",
-               "haven",
-               "here")
+pacman::p_load(tidyverse,
+               estimatr,
+               stats,
+               stargazer,
+               haven,
+               here,
+               patchwork,
+               readxl)
 ```
 
-## Step 2: Importing databases
+## Question 1
+### Importing databases
 
 ```{r}
-viv = read.csv(here("Data", "VIVT110.csv"))
-hog = read.csv(here("Data", "HOGT110.csv"))
-sdem = read.csv(here("Data", "SDEMT110.csv"))
-coe1 = read.csv(here("Data", "COE1T110.csv"))
-coe2 = read.csv(here("Data", "COE2T110.csv"))
+# SDEM data
+sdem2010 = read.csv(here("Data", "SDEMT110.csv"))
+sdem2011 = read.csv(here("Data", "SDEMT111.csv"))
+sdem2012 = read.csv(here("Data", "SDEMT112.csv"))
+sdem2013 = read.csv(here("Data", "SDEMT113.csv"))
+sdem2014 = read.csv(here("Data", "SDEMT114.csv"))
+sdem2015 = read.csv(here("Data", "SDEMT115.csv"))
+sdem2016 = read.csv(here("Data", "SDEMT116.csv"))
+sdem2017 = read.csv(here("Data", "SDEMT117.csv"))
+sdem2018 = read.csv(here("Data", "SDEMT118.csv"))
+sdem2019 = read.csv(here("Data", "SDEMT119.csv"))
+sdem2020 = read.csv(here("Data", "ENOE_SDEMT120.csv"))
+
+# COE2 data
+coe22010 = read.csv(here("Data", "COE2T110.csv"))
+coe22011 = read.csv(here("Data", "COE2T111.csv"))
+coe22012 = read.csv(here("Data", "COE2T112.csv"))
+coe22013 = read.csv(here("Data", "COE2T113.csv"))
+coe22014 = read.csv(here("Data", "COE2T114.csv"))
+coe22015 = read.csv(here("Data", "COE2T115.csv"))
+coe22016 = read.csv(here("Data", "COE2T116.csv"))
+coe22017 = read.csv(here("Data", "COE2T117.csv"))
+coe22018 = read.csv(here("Data", "COE2T118.csv"))
+coe22019 = read.csv(here("Data", "COE2T119.csv"))
+coe22020 = read.csv(here("Data", "ENOE_COE2T120.csv"))
+
+# Price index data
+mexcpi = read_excel(here("Data", "MEXCPIALLAINMEI.xlsx"), 
+                     sheet = "Annual")
 ```
 
-## Step 3: Cleaning databases
+### Cleaning databases
+```{r}
+# Concatenating the SDEM datasets
+sdem = rbind(sdem2010,
+             sdem2011,
+             sdem2012,
+             sdem2013,
+             sdem2014,
+             sdem2015,
+             sdem2016,
+             sdem2017,
+             sdem2018,
+             sdem2019,
+             sdem2020)
+
+# Removing the individual SDEM datasets
+rm(sdem2010,
+   sdem2011,
+   sdem2012,
+   sdem2013,
+   sdem2014,
+   sdem2015,
+   sdem2016,
+   sdem2017,
+   sdem2018,
+   sdem2019,
+   sdem2020)
+
+# Concatenating the COE2 datasets
+coe2 = rbind(coe22010,
+             coe22011,
+             coe22012,
+             coe22013,
+             coe22014,
+             coe22015,
+             coe22016,
+             coe22017,
+             coe22018,
+             coe22019,
+             coe22020)
+
+# Removing the individual COE2 datasets
+rm(coe22010,
+   coe22011,
+   coe22012,
+   coe22013,
+   coe22014,
+   coe22015,
+   coe22016,
+   coe22017,
+   coe22018,
+   coe22019,
+   coe22020)
+
+# Cleaning memory
+gc()
+```
