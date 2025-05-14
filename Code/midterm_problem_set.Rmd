@@ -17,166 +17,11 @@ pacman::p_load(tidyverse,
                readxl)
 ```
 
-### Importing raw databases
-```{r}
-# SDEM data
-sdem2010 = read.csv(here("Data/Raw", "SDEMT110.csv")) %>% 
-  mutate(year = 2010)
-sdem2011 = read.csv(here("Data/Raw", "SDEMT111.csv")) %>% 
-  mutate(year = 2011)
-sdem2012 = read.csv(here("Data/Raw", "SDEMT112.csv")) %>% 
-  mutate(year = 2012)
-sdem2013 = read.csv(here("Data/Raw", "SDEMT113.csv")) %>% 
-  mutate(year = 2013)
-sdem2014 = read.csv(here("Data/Raw", "SDEMT114.csv")) %>% 
-  mutate(year = 2014)
-sdem2015 = read.csv(here("Data/Raw", "SDEMT115.csv")) %>% 
-  mutate(year = 2015)
-sdem2016 = read.csv(here("Data/Raw", "SDEMT116.csv")) %>% 
-  mutate(year = 2016)
-sdem2017 = read.csv(here("Data/Raw", "SDEMT117.csv")) %>% 
-  mutate(year = 2017)
-sdem2018 = read.csv(here("Data/Raw", "SDEMT118.csv")) %>% 
-  mutate(year = 2018)
-sdem2019 = read.csv(here("Data/Raw", "SDEMT119.csv")) %>% 
-  mutate(year = 2019)
-sdem2020 = read.csv(here("Data/Raw", "ENOE_SDEMT120.csv")) %>% 
-  mutate(year = 2020)
-
-# COE2 Data
-coe22010 = read.csv(here("Data/Raw", "COE2T110.csv")) %>% 
-  mutate(year = 2010)
-coe22011 = read.csv(here("Data/Raw", "COE2T111.csv")) %>% 
-  mutate(year = 2011)
-coe22012 = read.csv(here("Data/Raw", "COE2T112.csv")) %>% 
-  mutate(year = 2012)
-coe22013 = read.csv(here("Data/Raw", "COE2T113.csv")) %>% 
-  mutate(year = 2013)
-coe22014 = read.csv(here("Data/Raw", "COE2T114.csv")) %>% 
-  mutate(year = 2014)
-coe22015 = read.csv(here("Data/Raw", "COE2T115.csv")) %>% 
-  mutate(year = 2015)
-coe22016 = read.csv(here("Data/Raw", "COE2T116.csv")) %>% 
-  mutate(year = 2016)
-coe22017 = read.csv(here("Data/Raw", "COE2T117.csv")) %>% 
-  mutate(year = 2017)
-coe22018 = read.csv(here("Data/Raw", "COE2T118.csv")) %>% 
-  mutate(year = 2018)
-coe22019 = read.csv(here("Data/Raw", "COE2T119.csv")) %>% 
-  mutate(year = 2019)
-coe22020 = read.csv(here("Data/Raw", "ENOE_COE2T120.csv")) %>% 
-  mutate(year = 2020)
-
-# Cleaning memory
-gc()
-```
-
-### Cleaning raw databases
-```{r}
-# Concatenating the SDEM datasets
-sdem = rbind(sdem2010,
-             sdem2011,
-             sdem2012,
-             sdem2013,
-             sdem2014,
-             sdem2015,
-             sdem2016,
-             sdem2017,
-             sdem2018,
-             sdem2019,
-             sdem2020)
-
-# Removing the individual SDEM datasets
-rm(sdem2010,
-   sdem2011,
-   sdem2012,
-   sdem2013,
-   sdem2014,
-   sdem2015,
-   sdem2016,
-   sdem2017,
-   sdem2018,
-   sdem2019,
-   sdem2020)
-
-# Concatenating the COE2 datasets
-coe2 = rbind(coe22010,
-             coe22011,
-             coe22012,
-             coe22013,
-             coe22014,
-             coe22015,
-             coe22016,
-             coe22017,
-             coe22018,
-             coe22019,
-             coe22020)
-
-# Removing the individual COE2 datasets
-rm(coe22010,
-   coe22011,
-   coe22012,
-   coe22013,
-   coe22014,
-   coe22015,
-   coe22016,
-   coe22017,
-   coe22018,
-   coe22019,
-   coe22020)
-
-# Cleaning memory
-gc()
-
-# Exporting concatenated datasets
-write_csv(sdem, here("Data/Final", "sdem.csv"))
-write_csv(coe2, here("Data/Final", "coe2.csv"))
-
-# Cleaning memory
-gc()
-```
-
 ## Question 1
-### Checkpoint
+### Importing databases
 ```{r}
 # Importing SDEM final dataset
-sdem = read_csv(here("Data/Final", "sdem.csv")) %>% 
-  select(cd_a,
-         ent,
-         con, 
-         v_sel, 
-         n_hog, 
-         h_mud, 
-         year,
-         par_c,
-         eda,
-         hrsocup,
-         ing_x_hrs,
-         sex,
-         n_hij,
-         e_con,
-         cs_p13_1)
-
-# Cleaning memory
-gc()
-
-# Importing COE2 final dataset
-coe2 = read_csv(here("Data/Final", "coe2.csv")) %>% 
-  select("cd_a",
-         "ent",
-         "con",
-         "v_sel",
-         "n_hog",
-         "h_mud",
-         "n_ren",
-         "n_pro_viv",
-         "year",
-         "p11_h2",
-         "p11_m2",
-         "p11_h7",
-         "p11_m7" ,
-         "p11_h5",
-         "p11_m5")
+sdem = read_csv(here("Data/Final", "sdem.csv"))
 
 # Cleaning memory
 gc()
@@ -197,7 +42,6 @@ sdem_agg = sdem %>% group_by(cd_a, ent, con, v_sel, n_hog, h_mud, year) %>%
             age_hspouse = first(eda[par_c %in% c(201,202)]),
             chld_less16 = as.integer(sum(par_c %in% c(301,302,303) &
                                            eda < 16) > 0))
-   
 
 # Join with the data
 sdem = sdem %>% 
@@ -216,15 +60,12 @@ sdem = sdem %>%
 sdem$HourC = ifelse(sdem$Employed == 1,
                           sdem$hrsocup, NA)
 
-#Deflate the salary
+# Deflate the salary
 sdem = sdem %>% 
   left_join(mexcpi, by = c("year"))
 
-#sdem = sdem %>% mutate(Wage = 12*ingocup*(100/cpi))
 sdem = sdem %>%
   mutate(Wage = 52*ing_x_hrs*hrsocup*(100/cpi))  
-
-#ggplot(sdem, aes(Wage)) + geom_histogram()
 
 df1 = sdem %>% 
   filter(sex == 2, 
@@ -239,31 +80,21 @@ df1 = sdem %>%
 g1 = ggplot(df1, aes(year, EmplR)) + geom_point() + 
   geom_line(aes(group = 1)) + theme_bw() +
   ylab("Employment")
-#ggsave("plot1.png",dpi=600)
 
 g2 = ggplot(df1, aes(year, YWage)) + geom_point() + 
   geom_line(aes(group = 1)) +theme_bw() +
   ylab("Mean yearly Wage")
-#ggsave("plot2.png",dpi=600)
 
 g3 = ggplot(df1, aes(year, Hrs)) + geom_point() + 
   geom_line(aes(group = 1)) + theme_bw() +
   ylab("Hours Occupied by week Unconditionl")
-#ggsave("plot3.png",dpi=600)
 
 g4 = ggplot(df1, aes(year, HrsC)) + geom_point() + 
   geom_line(aes(group = 1)) + theme_bw() +
   ylab("Hours Occupied by week Conditionl")
-#ggsave("plot4.png",dpi=600)
 
 (g1 | g2) / (g3 | g4)
 ggsave(here("Out", "plot1.png"), width = 12, height = 12, dpi=600)
-
-# sdem$IngC = ifelse(sdem$Employed == 1,
-#                          sdem$ingocup, NA)
-# ggplot(df1, aes(year,YWageC)) + geom_point() +theme_bw() +
-#   ylab("Mean yearly Wage Conditional")
-# ggsave("plot4.png",dpi=600)
 
 rm(g1, g2, g3, g4, df1)
 ```
@@ -285,107 +116,106 @@ Tables = function(df1, status){
   final = data.frame(final)
   
   # All
-  final[1,c(1,5)] = c(mean(df1$Employed), mean(df1$Wage/12))
+  final[1,c(1,5)] = c(mean(df1$Employed), mean(df1$Wage/52))
   
   final[1,c(2,6)] = df1 %>% 
     filter(cs_p13_1 < 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[1,c(3,7)] = df1 %>% 
     filter(cs_p13_1 == 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[1,c(4,8)] = df1 %>%
     filter(cs_p13_1 %in% c(7,8,9)) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
-  
   
   # Less than 35 with young child
   final[2,c(1,5)] = df1 %>% 
     filter(hj_peq == 1, eda < 35) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[2,c(2,6)] = df1 %>% 
     filter(hj_peq == 1, eda < 35, cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[2,c(3,7)] = df1 %>% 
     filter(hj_peq == 1, eda < 35, cs_p13_1 == 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[2,c(4,8)] = df1 %>% 
     filter(hj_peq == 1, eda < 35,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   # Less than 35 with no child
   final[3,c(1,5)] = df1 %>% 
     filter(hj_peq == 0, eda < 35) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[3,c(2,6)] = df1 %>%
     filter(hj_peq == 0, eda < 35,cs_p13_1 < 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[3,c(3,7)] = df1 %>%
     filter(hj_peq == 0, eda < 35,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[3,c(4,8)] = df1 %>% 
     filter(hj_peq == 0, eda < 35,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   
   # Edad: 35-54
   final[4,c(1,5)] = df1 %>% 
     filter(eda >= 35, eda<=54) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[4,c(2,6)] = df1 %>%
     filter(eda >= 35, eda<=54,cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[4,c(3,7)] = df1 %>%
     filter(eda >= 35, eda<=54,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[4,c(4,8)] = df1 %>%
     filter(eda >= 35, eda<=54,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   # Edad: 55+
   final[5,c(1,5)] = df1 %>% 
     filter(eda >= 55) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[5,c(2,6)] = df1 %>% 
     filter(eda >= 55,cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[5,c(3,7)] = df1 %>% 
     filter(eda >= 55,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   final[5,c(4,8)] = df1 %>% 
     filter(eda >= 55,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>%
+    summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
   rownames(final) = c("All", "Less 35 - Young Chld",
@@ -398,7 +228,7 @@ Tables = function(df1, status){
 }
 
 
-# status = 5 (Married), 1 (Cohabiting), 6 (Single)
+# Marital status: 5 = Married, 1 = Cohabiting & 6 = Single
 
 Tables(df,5)
 Tables(df,1)
@@ -439,15 +269,7 @@ X2 = paste(Aux$cd_a, Aux$ent, Aux$con, Aux$v_sel,
 
 df = df[!X%in%X2,]
 
-rm(X); rm(X2); rm(Aux)
-
-
-# Join with the COE2
-df = left_join(df, coe2 , by = c("cd_a", "ent", "con",
-                                 "v_sel", "n_hog", "h_mud",
-                                 "n_ren", "n_pro_viv",
-                                 "year"))
-
+rm(X, X2, Aux)
 
 df$p11_h2 = ifelse(is.na(df$p11_h2), 0, df$p11_h2)
 df$p11_h5 = ifelse(is.na(df$p11_h5), 0, df$p11_h5)
@@ -456,10 +278,8 @@ df$p11_m2 = ifelse(is.na(df$p11_m2), 0, df$p11_m2)
 df$p11_m5 = ifelse(is.na(df$p11_m5), 0, df$p11_m5)
 df$p11_m7 = ifelse(is.na(df$p11_m7), 0, df$p11_m7)
 
-
 df = df %>% 
   filter(p11_h2 != 98, p11_h5 != 98, p11_h7 != 98)
-
 
 df$p11_h2 = ifelse(df$p11_h2 == 99 | is.na(df$p11_h2), 0, df$p11_h2)
 df$p11_h5 = ifelse(df$p11_h5 == 99 | is.na(df$p11_h5), 0, df$p11_h5)
@@ -470,7 +290,6 @@ df$hhChores_W = ifelse(df$year < 2013,  df$p11_h2*60 + df$p11_m2 +
                                          df$p11_h5*60 + df$p11_m5,0)
 df$hhChores_W = ifelse(df$year >= 2013, df$p11_h2*60 + df$p11_m2 +
                                          df$p11_h7*60 + df$p11_m7, df$hhChores_W)
-
 
 df %>% 
   ggplot() +
@@ -489,13 +308,7 @@ X2 = paste(Aux$cd_a, Aux$ent, Aux$con, Aux$v_sel,
 
 dfM = dfM[!X%in%X2,]
 
-rm(X); rm(X2); rm(Aux)
-
-# Join with the COE2
-dfM = left_join(dfM, coe2 , by = c("cd_a", "ent", "con",
-                                   "v_sel", "n_hog", "h_mud",
-                                   "n_ren", "n_pro_viv",
-                                   "year"))
+rm(X, X2, Aux)
 
 dfM$p11_h2 = ifelse(is.na(dfM$p11_h2), 0, dfM$p11_h2)
 dfM$p11_h5 = ifelse(is.na(dfM$p11_h5), 0, dfM$p11_h5)
@@ -504,7 +317,8 @@ dfM$p11_m2 = ifelse(is.na(dfM$p11_m2), 0, dfM$p11_m2)
 dfM$p11_m5 = ifelse(is.na(dfM$p11_m5), 0, dfM$p11_m5)
 dfM$p11_m7 = ifelse(is.na(dfM$p11_m7), 0, dfM$p11_m7)
 
-dfM = dfM %>% filter(p11_h2 != 98, p11_h5 != 98, p11_h7 != 98)
+dfM = dfM %>%
+  filter(p11_h2 != 98, p11_h5 != 98, p11_h7 != 98)
 
 dfM$p11_h2 = ifelse(dfM$p11_h2 == 99 | is.na(dfM$p11_h2), 0, dfM$p11_h2)
 dfM$p11_h5 = ifelse(dfM$p11_h5 == 99 | is.na(dfM$p11_h5), 0, dfM$p11_h5)
@@ -516,20 +330,19 @@ dfM$hhChores_M = ifelse(dfM$year < 2013,  dfM$p11_h2*60 + dfM$p11_m2 +
 dfM$hhChores_M = ifelse(dfM$year >= 2013, dfM$p11_h2*60 + dfM$p11_m2 +
                            dfM$p11_h7*60 + dfM$p11_m7, dfM$hhChores_M)
 
-dfM %>% ggplot() + geom_histogram(mapping = aes(hhChores_M/60))
+dfM %>%
+  ggplot() + 
+  geom_histogram(mapping = aes(hhChores_M/60))
 
-dfM = dfM %>% select(cd_a, ent, con, v_sel, n_hog, 
+dfM = dfM %>%
+  select(cd_a, ent, con, v_sel, n_hog, 
                       h_mud, n_ren, n_pro_viv, year, hhChores_M)
 
 #### Join- W + M
 df = df %>%
-  left_join(dfM, by = c("cd_a", "ent", "con",
-                                   "v_sel", "n_hog", "h_mud",
-                                   "year"))
+  left_join(dfM, by = c("cd_a", "ent", "con", "v_sel", "n_hog", "h_mud", "year"))
 
 df = df[!is.na(df$hhChores_M),]
-
-#ggplot(df, aes(hhChores_M, hhChores_M)) +geom_point()
 
 df %>% filter(e_con == 1) %>%
   group_by(year) %>% 
@@ -541,16 +354,99 @@ df %>% filter(e_con == 5) %>%
 
 df %>% 
   group_by(year, e_con) %>% 
-  summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = T)) %>%
-  ggplot(mapping = aes(year, Ratio, col = as.factor(e_con))) + geom_point() +
-  geom_line() + theme_bw()
+  summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = TRUE)) %>%
+  mutate(status = case_when(
+    e_con == 1 ~ "Cohabiting",
+    T ~ "Married"
+  )) %>% 
+  ggplot(aes(x = year, y = Ratio, color = as.factor(status))) + 
+  geom_point() +
+  geom_line() + 
+  theme_bw() +
+  labs(color = "Marital status") + 
+  scale_x_continuous(breaks = unique(df$year))
 
+rm(df, dfM)
+```
+### Importing databases
+```{r}
+VivEni = read_csv(here("Data/Raw", "viviendas.csv"))
+ConcEni = read_csv(here("Data/Raw", "concentradohogar.csv"))
+PobEni = read_csv(here("Data/Raw", "poblacion.csv"))
+GasEni = read_csv(here("Data/Raw", "gastoshogar.csv"))
+```
 
-rm(coe2); rm(dfM)
-# 
-# sdem %>% filter(cd_a == 1, ent == 9, con == 40023,
-#                      v_sel == 2, n_hog == 1, h_mud == 0) %>%
-#   select(cd_a, ent, con, v_sel, n_hog, h_mud,year,sex,
-#          eda,par_c, n_hij, chld_less16) %>%
-#   View()
+### Item d
+```{r}
+# Get Home Ownership
+VivEni = VivEni %>% 
+  filter(tenencia != 6) %>%
+  mutate(homeownership = ifelse(tenencia %in% c(1,2,5), 0, 1))
+
+# Get daycar, insurances, child care
+GasEni = GasEni %>% mutate(health_ins = ifelse(clave %in% c("J070", "J071", "J072"),
+                                                gasto_tri, 0),
+                            other_ins  = ifelse(clave %in% c("N008", "N009"),
+                                               gasto_tri, 0),
+                            child_care = ifelse(clave %in% c("E012"),
+                                                gasto_tri, 0),
+                            child_exp  = ifelse(!is.na(clave),
+                                                as.integer(clave == "E012"), NA),
+                            day_care = ifelse(clave %in% c("E008"),
+                                                gasto_tri, 0),
+                            day_exp  = ifelse(!is.na(clave),
+                                                as.integer(clave == "E008"), NA)
+                            )
+
+GasH = GasEni %>% group_by(folioviv, foliohog) %>%
+  summarise(health_ins = sum(health_ins, na.rm = T),
+            other_ins  = sum(other_ins, na.rm = T),
+            child_care = sum(child_care, na.rm = T),
+            child_exp  = sum(child_exp, na.rm = T),
+            day_care   = sum(day_care, na.rm = T),
+            day_exp    = sum(day_exp, na.rm = T))
+
+PobH = PobEni %>% group_by(folioviv, foliohog) %>%
+  summarise(age_hhead = edad[which(parentesco == 101)],
+            age_hspouse = first(edad[parentesco %in% c(201,202)]),
+            married = edo_conyug[which(parentesco == 101)])
+
+ConcEni = ConcEni %>% left_join(VivEni, by = c("folioviv"))
+
+ConcEni = ConcEni %>% left_join(GasH, by = c("folioviv",
+                                              "foliohog"))
+
+ConcEni = ConcEni %>% left_join(PobH, by = c("folioviv",
+                                              "foliohog"))
+
+ConcEni = ConcEni %>% 
+  filter(clase_hog == 2)
+
+ConcEni = ConcEni %>% mutate(Income = ing_cor - ingtrab,
+                              Food =  ali_dentro + ali_fuera,
+                              Transportation = transporte,
+                              HealthService = salud,
+                              Utilities = pred_cons + agua + energia,
+                              Education = educacion,
+                              HouseKeeping = cuidados,
+                              Rent = ifelse(homeownership == 0, alquiler, estim_alqu),
+                              Insurance = health_ins + other_ins,
+                              Health_ins = health_ins,
+                              Home_ins = other_ins,
+                              Childc = day_care + child_care)
+
+vars_to_summarise = c("Income", "Food", "Transportation", "HealthService", "Utilities", 
+                       "Education", "HouseKeeping", "Rent", "Insurance", "Health_ins", 
+                       "Home_ins", "Childc")
+
+tabela_resumo = ConcEni %>%
+  filter(married %in% c(1, 2)) %>%
+  group_by(married) %>%
+  summarise(
+    across(all_of(vars_to_summarise),
+           list(Mean = ~mean(.x, na.rm = TRUE),
+                Median = ~median(.x, na.rm = TRUE)))
+  )
+
+tabela_resumo
 ```
