@@ -1,0 +1,178 @@
+---
+title: "Question 4"
+author: "Gustavo Henrique"
+date: "`r Sys.Date()`"
+output: pdf_document
+encoding: UTF-8
+---
+
+# Question 4
+## Item a
+### Interior solution
+Considering positive work in both period 1 and 2, our Lagrangian is
+
+$$\mathcal{L}=\sum_{t=1}^{3}\beta^{t-1}[\alpha \ln C_t+(1-\alpha)\ln L_t]-\lambda \left [\sum_{t=1}^{3} \frac{C_t}{(1+r)^{t-1}}-A_1-\sum_{t=1}^{2}\frac{w_t(L_0-L_t)}{(1+r)^{t-1}}\right]$$
+
+with CPO's:
+
+$$
+\begin{aligned}
+\,
+[C_t] &: \frac{\alpha\beta^{t-1}}{C_t}-\frac{\lambda}{(1+r)^{t-1}}=0 \Longrightarrow C_t^*=\frac{\alpha[\beta(1+r)]^{t-1}}{\lambda} \\
+[L_t] &: \frac{(1-\alpha)\beta^{t-1}}{L_t}-\frac{\lambda w_t}{(1+r)^{t-1}}=0 \Longrightarrow L_t^*=\frac{(1-\alpha)[\beta(1+r)]^{t-1}}{\lambda w_t}
+\end{aligned}
+$$
+
+Then, the Frischian labor supply function is simple
+
+$$
+h_t^F(w_t, \lambda, t)=L_0-L_t^*=L_0-\frac{(1-\alpha)[\beta(1+r)]^{t-1}}{\lambda w_t}
+$$
+
+Recall that the Marshallian elasticity accounts for variations in labor supply due to permanent shocks in the path of wage. So, to find the Marshallian labor supply function, we need to substitute $C_t^*$ and $L_t^*$ into the budget constraint and isolate $\lambda$ to find a close expression for the Lagrangean multiplier, i. e.,
+
+$$
+\begin{aligned}
+\sum_{t=1}^{3} \frac{C_t^*}{(1+r)^{t-1}}-A_1-\sum_{t=1}^{2}\frac{w_t(L_0-L_t^*)}{(1+r)^{t-1}} &= 0 \\
+\sum_{t=1}^{3} \frac{1}{(1+r)^{t-1}} \cdot \frac{\alpha[\beta(1+r)]^{t-1}}{\lambda}-A_1-\sum_{t=1}^{2}\left[\frac{w_tL_0}{(1+r)^{t-1}}-\frac{w_t}{(1+r)^{t-1}}\cdot \frac{(1-\alpha)[\beta(1+r)]^{t-1}}{\lambda w_t}\right] &= 0 \\
+\sum_{t=1}^{3} \frac{\alpha \beta^{t-1}}{\lambda}-A_1-\sum_{t=1}^{2}\left[\frac{w_tL_0}{(1+r)^{t-1}}-\frac{(1-\alpha)\beta^{t-1}}{\lambda}\right] &= 0 \\
+\frac{\alpha}{\lambda}\sum_{t=1}^{3}\beta^{t-1}-A_1-L_0\sum_{t=1}^{2}\frac{w_t}{(1+r)^{t-1}}+\frac{(1-\alpha)}{\lambda}\sum_{t=1}^{2}\beta^{t-1} &= 0
+\end{aligned}
+$$
+
+As we know
+
+$$
+\sum_{t=1}^{T}\beta^{t-1}=\frac{1-\beta^T}{1-\beta}
+$$
+So, we have
+
+$$
+\begin{aligned}
+A_1+L_0\sum_{t=1}^{2}\frac{w_t}{(1+r)^{t-1}} &= \frac{1}{\lambda(1-\beta)}[\alpha(1-\beta^3)+(1-\alpha)(1-\beta^2)] \\
+\lambda \left[A_1+L_0 \left(w_1+\frac{w_2}{(1+r)}\right)\right] &= \frac{1-\alpha \beta^3+(1-\alpha)\beta^2}{(1-\beta)} \\
+\lambda \left [\frac{(1+r)(A_1+L_0 w_1)+w_2}{(1+r)} \right] &= \frac{1-\alpha \beta^3+(1-\alpha)\beta^2}{(1-\beta)}
+\end{aligned}
+$$
+which yields
+
+$$
+\lambda^* = \frac{(1+r)[1-\alpha \beta^3+(1-\alpha)\beta^2]}{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]}
+$$
+Therefore, the Marshallian labor supply function is:
+
+$$
+\begin{aligned}
+h_t^M(w_t, \lambda^*, t) &= L_0-\frac{(1-\alpha)[\beta(1+r)]^{t-1}}{\lambda^* w_t} \\
+h_t^M(w_t, \lambda^*, t) &= L_0-\frac{\gamma(1-\alpha)[\beta(1+r)]^{t-1}}{w_t}
+\end{aligned}
+$$
+
+where
+$$
+\gamma = \frac{1}{\lambda^*} = \frac{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]}{(1+r)[1-\alpha \beta^3+(1-\alpha)\beta^2]}
+$$
+
+### Corner solution
+We have two cases to consider here:
+
+1. **Work only in period 1 ($L_2=L_0$)**
+
+In this case, the budget constraint will be
+
+$$
+\sum_{t=1}^{3} \frac{C_t}{(1+r)^{t-1}}=A_1+w_1(L_0-L_1)
+$$
+Notice that in this case we just need to choose $C_t$ and $L_1$, so the Lagrangean will be
+
+$$
+\mathcal{L}=\sum_{t=1}^{3}\beta^{t-1}\alpha \ln C_t+(1-\alpha)\ln L_1 + (\beta+\beta^2)(1-\alpha)L_0 + \lambda\left [A_1 + w_1(L_0-L_1)-\sum_{t=1}^3\frac{C_t}{(1+r)^{t-1}} \right]
+$$
+
+Then, from FOC we get and repeating the previous process, we get
+
+$$
+\begin{aligned}
+\lambda^{**} &= \frac{1-[1-\alpha(1-\beta^2)]\beta}{(1-\beta)[A_1+w_1L_0]} \\
+h_1^F(w_1, \lambda)&=L_0-\frac{1-\alpha}{\lambda w_1} \\
+h_1^M(w_1, \lambda^*, t)&=L_0-\frac{\gamma'(1-\alpha)}{w_1}
+\end{aligned}
+$$
+
+where here
+
+$$
+\gamma'=\frac{1}{\lambda^{**}}
+$$
+
+2. **Work only in period 2 ($L_1=L_0$)**
+
+The budget constraint in this case is
+
+$$
+\sum_{t=1}^{3} \frac{C_t}{(1+r)^{t-1}}=A_1+\frac{w_2(L_0-L_2)}{(1+r)}
+$$
+The Lagrangean then will be
+
+$$
+\mathcal{L}=\sum_{t=1}^{3}\beta^{t-1}\alpha \ln C_t+\beta(1-\alpha)\ln L_2 + (1+\beta^2)(1-\alpha)L_0 + \lambda\left [A_1 + \frac{w_2(L_0-L_2)}{(1+r)}-\sum_{t=1}^3\frac{C_t}{(1+r)^{t-1}} \right]
+$$
+
+Repeating the process above yields
+
+$$
+\begin{aligned}
+\lambda^{***} &= \frac{(1+r)[\alpha(1-\beta^3)+(1-\alpha)\beta(1-\beta)]}{(1-\beta)[(1+r)A_1+w_2L_0]} \\
+h_2^F(w_2, \lambda)&=L_0-\frac{\beta(1-\alpha)(1+r)}{\lambda w_2} \\
+h_2^M(w_2, \lambda^*, t)&=L_0-\frac{\gamma''(1-\alpha)}{w_2}
+\end{aligned}
+$$
+where
+
+$$
+\gamma''=\frac{1}{\lambda^{***}}
+$$
+
+## Item b
+### For interior solution
+From item a, we know that 
+
+$$
+\lambda^* = \frac{(1+r)[1-\alpha \beta^3+(1-\alpha)\beta^2]}{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]}
+$$
+
+So, we have
+
+$$
+\begin{aligned}
+\frac{\partial \lambda^*}{\partial w_1} &= - \frac{(1+r)^2[1-\alpha \beta^3+(1-\alpha)\beta^2]L_0}{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]^2} < 0 \\
+\frac{\partial \lambda^*}{\partial w_2} &= - \frac{(1+r)[1-\alpha \beta^3+(1-\alpha)\beta^2]}{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]^2} < 0 \\
+\frac{\partial \lambda^*}{\partial A_1} &= - \frac{(1+r)^2[1-\alpha \beta^3+(1-\alpha)\beta^2]L_0}{(1-\beta)[(1+r)(A_1+L_0 w_1)+w_2]^2} < 0 \\
+\end{aligned}
+$$
+
+which means that the marginal utility of wealth is decreasing with wages and initial wealth.
+
+### For corner solution
+Again, we need to consider both cases
+
+1. **Work only in period 1 ($L_2=L_0$)**
+Since here the agent doesn't work at period 2, we have $w_2=0$, so
+
+$$
+\begin{aligned}
+\frac{\partial \lambda^**}{\partial w_1} &= - \frac{[1-[1-\alpha(1-\beta^2)]\beta]L_0}{(1-\beta)[A_1+w_1L_0]^2} < 0 \\
+\frac{\partial \lambda^**}{\partial A_1} &= - \frac{1-[1-\alpha(1-\beta^2)]\beta}{(1-\beta)[A_1+w_1L_0]^2} < 0 \\
+\end{aligned}
+$$
+
+2. **Work only in period 2 ($L_1=L_0$)**
+Here we have $w_1=0$, then
+
+$$
+\begin{aligned}
+\frac{\partial \lambda^{***}}{\partial w_2} &= - \frac{(1+r)[\alpha(1-\beta^3)+(1-\alpha)\beta(1-\beta)]L_0}{(1-\beta)[(1+r)A_1+w_2L_0]^2} < 0 \\
+\frac{\partial \lambda^{***}}{\partial A_1} &= - \frac{(1+r)^2[\alpha(1-\beta^3)+(1-\alpha)\beta(1-\beta)]}{(1-\beta)[(1+r)A_1+w_2L_0]^2} < 0 \\
+\end{aligned}
+$$
+
