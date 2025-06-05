@@ -5,7 +5,7 @@ library(patchwork)
 library(readxl)
 
 ################################################################################
-# Ler os dados - SDE
+# Read Data - SDE - all years
 
 SDE_10 <- read_csv("Data/2010trim1_csv/SDEMT110.csv")
 SDE_10$Year <- 2010
@@ -49,7 +49,8 @@ rm(SDE_10,SDE_11,SDE_12,SDE_13,
    SDE_18,SDE_19,SDE_20)
 
 ################################################################################
-# Ler dados - COE2
+# Read Data - COE2 - all years
+
 COE2_10 <- read_csv("Data/2010trim1_csv/COE2T110.csv")
 COE2_10$Year <- 2010
 
@@ -92,7 +93,8 @@ rm(COE2_10,COE2_11,COE2_12,COE2_13,
    COE2_18,COE2_19,COE2_20)
 
 ################################################################################
-# Ler dados - CPI 
+# Read Data - CPI - deflate Wages
+
 MEXCPI <- read_excel("Data/MEXCPI.xlsx", 
                      sheet = "Annual")
 MEXCPI$Year <-  as.numeric(format(MEXCPI$observation_date, "%Y"))
@@ -108,7 +110,8 @@ SDE_Summ <- SDE_Total %>% group_by(cd_a, ent, con, v_sel,
   summarise(age_hhead = eda[which(par_c == 101)],
             age_hspouse = first(eda[par_c %in% c(201,202)]),
             chld_less16 = as.integer(sum(par_c %in% c(301,302,303) &
-                                           eda < 16) > 0))
+                                           eda < 16) > 0)
+            )
    
 
 # Join with the data
@@ -119,7 +122,8 @@ SDE_Total <- SDE_Total %>% left_join(SDE_Summ,
                                      )
 
 
-# Employed 
+
+# Generate Employed Variable
 # hrsocu > 0 and non empty, also, age_hhead > 13 and age_hhead <= 98
 
 SDE_Total <- SDE_Total %>% mutate(Employed = ifelse((hrsocup >0) & 
@@ -133,10 +137,12 @@ SDE_Total$HourC <- ifelse(SDE_Total$Employed == 1,
 
 #Deflate the salary
 SDE_Total <- SDE_Total %>% left_join(MEXCPI, by = c("Year"))
-#SDE_Total <- SDE_Total %>% mutate(Wage = 12*ingocup*(100/CPI))
+SDE_Total <- SDE_Total %>% mutate(IngOcupYear = 12*ingocup*(100/CPI))
 SDE_Total <- SDE_Total %>% mutate(Wage = 52*ing_x_hrs*hrsocup*(100/CPI))  
 
-#ggplot(SDE_Total, aes(Wage)) + geom_histogram()
+
+
+# Generate the plots 
 
 df1 <- SDE_Total %>% 
   filter(sex == 2, 
@@ -170,15 +176,9 @@ g4 <- ggplot(df1, aes(Year,HrsC)) + geom_point() +
 #ggsave("plot4.png",dpi=600)
 
 (g1 | g2) / (g3 | g4)
-ggsave("plot1.png",dpi=600)
+#ggsave("plot1.png",dpi=600)
 
-# SDE_Total$IngC <- ifelse(SDE_Total$Employed == 1,
-#                          SDE_Total$ingocup, NA)
-# ggplot(df1, aes(Year,YWageC)) + geom_point() +theme_bw() +
-#   ylab("Mean Yearly Wage Conditional")
-# ggsave("plot4.png",dpi=600)
-
-rm(g1,g2,g3,g4,df1)
+rm(g1,g2,g3,g4,df1, MEXCPI)
 
 ################################################################################
 # Q1-b
@@ -198,71 +198,71 @@ Tables <- function(df1, status){
   final <- data.frame(final)
   
   # All
-  final[1,c(1,5)] <- c(mean(df1$Employed), mean(df1$Wage/12))
+  final[1,c(1,5)] <- c(mean(df1$Employed), mean(df1$Wage/52))
   
   final[1,c(2,6)] <- df1 %>% filter(cs_p13_1 < 4) %>%
-    summarise(mean(Employed), mean(Wage/12)) %>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52)) %>% as.numeric()
   
   final[1,c(3,7)] <- df1 %>% filter(cs_p13_1 == 4) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52)) %>% as.numeric()
   
   final[1,c(4,8)] <- df1 %>% filter(cs_p13_1 %in% c(7,8,9)) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52)) %>% as.numeric()
   
   
   # Less than 35 with young child
   final[2,c(1,5)] <- df1 %>% filter(hj_peq == 1, eda < 35) %>% 
-    summarise(mean(Employed), mean(Wage/12)) %>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52)) %>% as.numeric()
   
   final[2,c(2,6)] <- df1 %>% filter(hj_peq == 1, eda < 35, cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[2,c(3,7)] <- df1 %>% filter(hj_peq == 1, eda < 35, cs_p13_1 == 4) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[2,c(4,8)] <- df1 %>% filter(hj_peq == 1, eda < 35,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   
   # Less than 35 with no child
   final[3,c(1,5)] <- df1 %>% filter(hj_peq == 0, eda < 35) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[3,c(2,6)] <- df1 %>% filter(hj_peq == 0, eda < 35,cs_p13_1 < 4) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[3,c(3,7)] <- df1 %>% filter(hj_peq == 0, eda < 35,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[3,c(4,8)] <- df1 %>% filter(hj_peq == 0, eda < 35,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   
   # Edad: 35-54
-  final[4,c(1,5)] <- df1 %>% filter(eda >= 35, eda<=54) %>% summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+  final[4,c(1,5)] <- df1 %>% filter(eda >= 35, eda<=54) %>% summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[4,c(2,6)] <- df1 %>% filter(eda >= 35, eda<=54,cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[4,c(3,7)] <- df1 %>% filter(eda >= 35, eda<=54,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[4,c(4,8)] <- df1 %>% filter(eda >= 35, eda<=54,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   
   # Edad: 55+
   final[5,c(1,5)] <- df1 %>% filter(eda >= 55) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[5,c(2,6)] <- df1 %>% filter(eda >= 55,cs_p13_1 < 4) %>% 
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[5,c(3,7)] <- df1 %>% filter(eda >= 55,cs_p13_1 == 4) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   final[5,c(4,8)] <- df1 %>% filter(eda >= 55,cs_p13_1 %in% c(7,8,9)) %>%
-    summarise(mean(Employed), mean(Wage/12))%>% as.numeric()
+    summarise(mean(Employed), mean(Wage/52))%>% as.numeric()
   
   rownames(final) <- c("All", "Less 35 - Young Chld",
                        "Less 35 - No Chld", "35-54",
@@ -280,7 +280,7 @@ dfM <- Tables(df,5)
 dfC <- Tables(df,1)
 dfS <- Tables(df,6)
 
-rm(dfM); rm(dfC); rm(dfS); rm(status)
+rm(dfM); rm(dfC); rm(dfS)
 
 ################################################################################
 # Q1-c
@@ -347,9 +347,11 @@ df %>% ggplot() + geom_histogram(mapping = aes(hhChores_W/60))
 
 
 
+
+################################################################################
 ## household chores man
 
-dfM <- SDE_Total %>% filter(e_con %in% c(1,5),
+dfM <- SDE_Total %>% filter(#e_con %in% c(1,5),
                             sex == 1,
                             par_c %in% c(101,201))
 
@@ -402,7 +404,10 @@ dfM %>% ggplot() + geom_histogram(mapping = aes(hhChores_M/60))
 
 
 dfM <- dfM %>% select(cd_a, ent, con, v_sel, n_hog, 
-                      h_mud, n_ren, n_pro_viv, Year, hhChores_M)
+                      h_mud, Year, hhChores_M,
+                      Wage, IngOcupYear)
+
+colnames(dfM)[9:10] <- c("WageM", "IngOcupYearM")
 
 #### Join- W + M
 
@@ -433,15 +438,58 @@ df %>%
   geom_line() + theme_bw()
 
 
+df %>% 
+  group_by(Year, e_con) %>% 
+  summarise(childCare = mean(p11_h2, na.rm = T)) %>%
+  ggplot(mapping = aes(Year, childCare, col = as.factor(e_con))) + geom_point() +
+  geom_line() + theme_bw()
+
 rm(df2); rm(dfM)
 
-# 
-# SDE_Total %>% filter(cd_a == 1, ent == 9, con == 40023,
-#                      v_sel == 2, n_hog == 1, h_mud == 0) %>%
-#   select(cd_a, ent, con, v_sel, n_hog, h_mud,Year,sex,
-#          eda,par_c, n_hij, chld_less16) %>%
-#   View()
 
+## Aditional cleaning - setup for question 2
+
+
+df$constant <- 1
+dfMW <- df %>% filter(e_con == 5)
+dfCW <- df %>% filter(e_con == 1)
+
+# Get hourly wage and non labor income
+dfCW <- dfCW %>% mutate(HrlWage  = ifelse(Employed == 1, Wage/(hrsocup*52),0),
+                        nonLaborInc = ifelse(Wage + WageM == 0,
+                                             (IngOcupYear + IngOcupYearM)/52,
+                                             WageM/52))
+
+dfMW <- dfMW %>% mutate(HrlWage  = ifelse(Employed == 1, Wage/(hrsocup*52),0),
+                        nonLaborInc = ifelse(Wage + WageM == 0,
+                                             (IngOcupYear + IngOcupYearM)/52,
+                                             WageM/52))
+
+
+# Trim the top 1% richest
+
+dfMW <- dfMW %>% filter(nonLaborInc < quantile(nonLaborInc, 0.99))
+dfCW <- dfCW %>% filter(nonLaborInc < quantile(nonLaborInc, 0.99))
+
+dfMW <- dfMW %>% filter(HrlWage < quantile(HrlWage, 0.99))
+dfCW <- dfCW %>% filter(HrlWage < quantile(HrlWage, 0.99))
+
+# Remove the ones with not know education
+dfCW <- dfCW %>% filter(cs_p13_1 != 99)
+dfMW <- dfMW %>% filter(cs_p13_1 != 99)
+
+# Remove the ones with not know number of child
+dfCW <- dfCW %>% filter(n_hij != 99)
+dfMW <- dfMW %>% filter(n_hij != 99)
+
+# Remove Employed but without any Wage
+dfCW <- dfCW %>% filter(!((Employed == 1) & (Wage ==0)))
+dfMW <- dfMW %>% filter(!((Employed == 1) & (Wage ==0)))
+
+
+saveRDS(dfMW, "Data/MarriedW.rds")
+saveRDS(dfCW, "Data/CohabW.rds")
+rm(dfCW); rm(dfMW)
 
 ################################################################################
 # Q1-d
@@ -452,43 +500,49 @@ PobEni <- read_csv("Data/poblacion.csv")
 GasEni <- read_csv("Data/gastoshogar.csv")
 
 
-
 # Get Home Ownership
 VivEni <- VivEni %>% 
   filter(tenencia != 6) %>%
-  mutate(homeownership = ifelse(tenencia %in% c(1,2,5), 0, 1))
+  mutate(homeownership = ifelse(tenencia %in% c(1,2,5), 0, 1)) %>%
+  select(folioviv, homeownership)
 
 
 # Get daycar, insurances, child care
 GasEni <- GasEni %>% mutate(health_ins = ifelse(clave %in% c("J070", "J071", "J072"),
                                                 gasto_tri, 0),
                             other_ins  = ifelse(clave %in% c("N008", "N009"),
-                                               gasto_tri, 0),
+                                                gasto_tri, 0),
                             child_care = ifelse(clave %in% c("E012"),
                                                 gasto_tri, 0),
-                            child_exp  = ifelse(!is.na(clave),
-                                                as.integer(clave == "E012"), NA),
                             day_care = ifelse(clave %in% c("E008"),
-                                                gasto_tri, 0),
-                            day_exp  = ifelse(!is.na(clave),
-                                                as.integer(clave == "E008"), NA)
-                            )
+                                              gasto_tri, 0))
 
 
 GasH <- GasEni %>% group_by(folioviv, foliohog) %>%
   summarise(health_ins = sum(health_ins, na.rm = T),
             other_ins  = sum(other_ins, na.rm = T),
             child_care = sum(child_care, na.rm = T),
-            child_exp  = sum(child_exp, na.rm = T),
-            day_care   = sum(day_care, na.rm = T),
-            day_exp    = sum(day_exp, na.rm = T))
+            day_care   = sum(day_care, na.rm = T))
+
+
+# Assuming NA for worked hours mean not working
+PobEni <- PobEni %>% 
+  mutate(hor_1 = ifelse(is.na(hor_1), 0, hor_1),
+         min_1 = ifelse(is.na(min_1), 0, min_1))
 
 
 PobH <- PobEni %>% group_by(folioviv, foliohog) %>%
   summarise(age_hhead = edad[which(parentesco == 101)],
             age_hspouse = first(edad[parentesco %in% c(201,202)]),
-            married = edo_conyug[which(parentesco == 101)])
-
+            married = edo_conyug[which(parentesco == 101)],
+            sex_hhead = sexo[which(parentesco == 101)],
+            sex_hspouse = sexo[which(parentesco %in% c(201,202))],
+            hworked_hhead = 
+              hor_1[which(parentesco == 101)]*60 + min_1[which(parentesco == 101)],
+            hworked_hspouse = 
+              hor_1[which(parentesco %in% c(201,202))]*60 + min_1[which(parentesco %in% c(201,202))],
+            sch_hhead = nivelaprob[which(parentesco == 101)],
+            sch_hspouse = nivelaprob[which(parentesco %in% c(201,202))])
 
 
 
@@ -505,24 +559,64 @@ ConcEni <- ConcEni %>%
   filter(clase_hog == 2)
 
 
-ConcEni <- ConcEni %>% mutate(Income = ing_cor - ingtrab,
-                              Food =  ali_dentro + ali_fuera,
-                              Transportation = transporte,
-                              HealthService = salud,
-                              Utilities = pred_cons + agua + energia,
-                              Education = educacion,
-                              HouseKeeping = cuidados,
-                              Rent = ifelse(homeownership == 0, alquiler, estim_alqu),
-                              Insurance = health_ins + other_ins,
-                              Health_ins = health_ins,
-                              Home_ins = other_ins,
-                              Childc = day_care + child_care)
+ConcEni <- ConcEni %>% mutate(nonlabor_inc = (ing_cor - ingtrab)/3,
+                              food =  ali_dentro + ali_fuera,
+                              transportation = transporte,
+                              healthService = salud,
+                              utilities = pred_cons + agua + energia,
+                              education = educacion,
+                              houseKeeping = cuidados,
+                              rent = ifelse(homeownership == 0, alquiler, estim_alqu),
+                              insurance = health_ins + other_ins,
+                              health_ins = health_ins,
+                              home_ins = other_ins,
+                              childc = day_care + child_care) %>%
+  select(folioviv, foliohog, age_hhead, age_hspouse,  married,
+         homeownership, sex_hhead, sex_hspouse, hworked_hhead,
+         hworked_hspouse, sch_hhead, sch_hspouse,
+         nonlabor_inc, ingtrab, food, transportation,
+         healthService, utilities, education, houseKeeping,
+         rent, insurance, health_ins, home_ins, childc)
+
+
+# Remove if homeownsership = NA
+ConcEni <- ConcEni %>% 
+  filter(!is.na(homeownership))
+
+# hist(ConcEni$nonlabor_inc)
+# hist(ConcEni$ingtrab)
+
+# Remove top-1% most rich 
+ConcEni <- ConcEni %>% 
+  filter(nonlabor_inc < quantile(nonlabor_inc, 0.99),
+         ingtrab < quantile(ingtrab, 0.99))
 
 
 
-vars_to_summarise <- c("Income", "Food", "Transportation", "HealthService", "Utilities", 
-                       "Education", "HouseKeeping", "Rent", "Insurance", "Health_ins", 
-                       "Home_ins", "Childc")
+ConcEni <- ConcEni %>%
+  mutate(
+    total_consumption = (food + transportation +
+      healthService + houseKeeping + health_ins +
+      home_ins + utilities + childc + education + rent)/ 3,
+    hworked_hhead = hworked_hhead/60,
+    hworked_hspouse = hworked_hspouse/60
+  )
+
+
+dfMM <- ConcEni %>% filter(married == 2)
+dfCM <- ConcEni %>% filter(married == 1)
+
+
+# for (i in 1:ncol(dfMM)) {
+#   print(colnames(dfMM)[i])
+#   print(sum(is.na(dfMM[,i])))
+# }
+
+
+
+vars_to_summarise <- c("nonlabor_inc", "food", "transportation", "healthService", "utilities", 
+                       "education", "houseKeeping", "rent", "insurance", "health_ins", 
+                       "home_ins", "childc")
 
 
 
@@ -535,7 +629,7 @@ tabela_resumo <- ConcEni %>%
                 Median = ~median(.x, na.rm = TRUE)))
   )
 
-
-
+saveRDS(dfMM, "Data/dfMM.rds")
+saveRDS(dfCM, "Data/dfCM.rds")
 
 
