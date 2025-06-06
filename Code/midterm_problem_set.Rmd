@@ -61,7 +61,8 @@ sdem = sdem %>%
 
 # Get the conditional hours
 sdem$HourC = ifelse(sdem$Employed == 1,
-                          sdem$hrsocup, NA)
+                    sdem$hrsocup, 
+                    NA)
 
 # Deflate the salary
 sdem = sdem %>% 
@@ -104,65 +105,82 @@ rm(g1, g2, g3, g4, df1)
 
 ### Item b
 ```{r, echo=FALSE}
+# DATA PREPARATION SECTION
+# Filter the main dataset (sdem) to include only women aged 25-65 and create child indicator
 df = sdem %>%
-  filter(sex == 2, eda %in% 25:65) %>% 
+  filter(sex == 2, eda %in% 25:65) %>%  # Filter for females (sex == 2) aged 25-65
   mutate(hj_peq = case_when(
+    # Create indicator for women with young children: 1 if has children AND has child under 16 AND is in partnership
     n_hij != 0 & chld_less16 != 0 & (par_c %in% c(101,201)) ~ 1,
-    T ~ 0
+    T ~ 0  # Otherwise assign 0 (no young children or not in partnership)
   ))
 
+# MAIN TABLE GENERATION FUNCTION
+# Function to create summary statistics tables by marital status
 Tables = function(df1, status){
+  # Filter dataset by specific marital status (5=married, 1=cohabiting, 6=single)
   df1 = df1 %>% 
     filter(e_con == status)
   
+  # Initialize empty 5x8 matrix to store results (5 age groups, 8 columns for stats)
   final = matrix(0, 5, 8)
   final = data.frame(final)
   
-  # All
+  # ROW 1: ALL WOMEN (regardless of age/children status)
+  # Columns 1&5: Overall employment rate and weekly earnings for all women
   final[1,c(1,5)] = c(mean(df1$Employed), mean(df1$Wage/52))
   
+  # Columns 2&6: Employment rate and weekly earnings for women with less than high school education
   final[1,c(2,6)] = df1 %>% 
-    filter(cs_p13_1 < 4) %>%
+    filter(cs_p13_1 < 4) %>%  # Education level less than 4 (less than HS)
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Columns 3&7: Employment rate and weekly earnings for women with high school education
   final[1,c(3,7)] = df1 %>% 
-    filter(cs_p13_1 == 4) %>% 
+    filter(cs_p13_1 == 4) %>%  # Education level equals 4 (high school)
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Columns 4&8: Employment rate and weekly earnings for women with college or above
   final[1,c(4,8)] = df1 %>%
-    filter(cs_p13_1 %in% c(7,8,9)) %>% 
+    filter(cs_p13_1 %in% c(7,8,9)) %>%  # Education levels 7,8,9 (college or above)
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
-  # Less than 35 with young child
+  # ROW 2: WOMEN UNDER 35 WITH YOUNG CHILDREN
+  # Overall stats for women under 35 with young children
   final[2,c(1,5)] = df1 %>% 
-    filter(hj_peq == 1, eda < 35) %>% 
+    filter(hj_peq == 1, eda < 35) %>%  # Has young child indicator = 1 AND age < 35
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels (less than HS)
   final[2,c(2,6)] = df1 %>% 
     filter(hj_peq == 1, eda < 35, cs_p13_1 < 4) %>% 
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels (high school)
   final[2,c(3,7)] = df1 %>% 
     filter(hj_peq == 1, eda < 35, cs_p13_1 == 4) %>% 
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels (college+)
   final[2,c(4,8)] = df1 %>% 
     filter(hj_peq == 1, eda < 35,cs_p13_1 %in% c(7,8,9)) %>%
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
-  # Less than 35 with no child
+  # ROW 3: WOMEN UNDER 35 WITH NO SMALL CHILDREN
+  # Overall stats for women under 35 without young children
   final[3,c(1,5)] = df1 %>% 
-    filter(hj_peq == 0, eda < 35) %>% 
+    filter(hj_peq == 0, eda < 35) %>%  # No young child indicator = 0 AND age < 35
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels (less than HS, HS, college+)
   final[3,c(2,6)] = df1 %>%
     filter(hj_peq == 0, eda < 35,cs_p13_1 < 4) %>%
     summarise(mean(Employed), mean(Wage/52)) %>%
@@ -178,13 +196,14 @@ Tables = function(df1, status){
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
-  
-  # Edad: 35-54
+  # ROW 4: WOMEN AGED 35-54
+  # Overall stats for middle-aged women (35-54)
   final[4,c(1,5)] = df1 %>% 
-    filter(eda >= 35, eda<=54) %>% 
+    filter(eda >= 35, eda<=54) %>%  # Age between 35 and 54
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels
   final[4,c(2,6)] = df1 %>%
     filter(eda >= 35, eda<=54,cs_p13_1 < 4) %>% 
     summarise(mean(Employed), mean(Wage/52)) %>%
@@ -200,12 +219,14 @@ Tables = function(df1, status){
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
-  # Edad: 55+
+  # ROW 5: WOMEN AGED 55 AND OLDER
+  # Overall stats for older women (55+)
   final[5,c(1,5)] = df1 %>% 
-    filter(eda >= 55) %>% 
+    filter(eda >= 55) %>%  # Age 55 and above
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
+  # Same group broken down by education levels
   final[5,c(2,6)] = df1 %>% 
     filter(eda >= 55,cs_p13_1 < 4) %>% 
     summarise(mean(Employed), mean(Wage/52)) %>%
@@ -221,59 +242,155 @@ Tables = function(df1, status){
     summarise(mean(Employed), mean(Wage/52)) %>%
     as.numeric()
   
-  rownames(final) = c("All", "Less 35 - Young Chld",
-                       "Less 35 - No Chld", "35-54",
-                       "55+")
+  # Assign descriptive row names for the 5 age/family status groups
+  rownames(final) = c("All", "Less than 35 with Child Younger than 16",
+                      "Less than 35 with No Small Children", "35-54",
+                      "55 and Older")
   
-  colnames(final) = c("All", "Less HS", "HS", "College+",
-                       "All - W", "Less HS - W", "HS - W", "College+ - W")  
+  # Assign column names: first 4 columns for labor force participation, last 4 for earnings
+  colnames(final) = c("All", "Less than HS", "High School", "College or Above",
+                      "All", "Less than HS", "High School", "College or Above")  
   return(final)
 }
 
+# LATEX TABLE GENERATION FUNCTION
+# Function to convert data tables into professionally formatted LaTeX tables
+create_final_table = function(df, status, status_name, output_file = NULL) {
+  # Generate the data table using the Tables function
+  table_data = Tables(df, status)
+  
+  # Create a clean label name for LaTeX referencing (lowercase, hyphens instead of spaces)
+  label_name = tolower(gsub(" ", "-", status_name))
+  
+  # Build LaTeX table code following professional academic formatting standards
+  latex_code = c(
+    "\\begin{table}[htbp]",  # Table environment with positioning options
+    "    \\centering",        # Center the table
+    paste("    \\caption{Labor Force Participation and Earnings -", status_name, "Aged 25-65}"),  # Table caption
+    paste("    \\label{tab:", label_name, "}", sep = ""),  # Table label for cross-referencing
+    "    \\resizebox{\\textwidth}{!}{%",  # Resize table to fit page width
+    "    \\begin{tabular}{lcccccccc}",    # Table structure: 1 left-aligned, 8 center-aligned columns
+    "    \\toprule",  # Top horizontal line (booktabs package)
+    # Create grouped column headers spanning multiple columns
+    "     & \\multicolumn{4}{c}{\\textbf{Labor Force Participation}} & \\multicolumn{4}{c}{\\textbf{Earnings}} \\\\",
+    "    \\cmidrule(lr){2-5} \\cmidrule(lr){6-9}",  # Partial horizontal lines under group headers
+    # Individual column headers
+    "     & All & Less than HS & High School & College+ & All & Less than HS & High School & College+ \\\\",
+    "    \\midrule"  # Middle horizontal line separating headers from data
+  )
+  
+  # Define row labels matching the data structure
+  row_names = c("All", 
+                "Less than 35 with Child Younger than 16",
+                "Less than 35 with No Small Children", 
+                "35-54",
+                "55 and Older")
+  
+  # Add data rows to LaTeX code
+  for(i in 1:nrow(table_data)) {
+    # Format numbers to 3 decimal places for consistent presentation
+    formatted_numbers = sprintf("%.3f", table_data[i,])
+    # Construct each data row with proper LaTeX formatting
+    data_row = paste("    ", row_names[i], " & ", 
+                     paste(formatted_numbers, collapse = " & "),
+                     " \\\\", sep = "")
+    latex_code = c(latex_code, data_row)
+  }
+  
+  # Close the LaTeX table structure
+  latex_code = c(latex_code,
+                 "    \\bottomrule",      # Bottom horizontal line
+                 "    \\end{tabular}%",  # End tabular environment
+                 "    }",                # Close resizebox
+                 "    \\end{table}")     # End table environment
+  
+  # Output handling: save to file if specified, always print to console
+  if(!is.null(output_file)) {
+    writeLines(latex_code, output_file)  # Write LaTeX code to .tex file
+  }
+  
+  cat(latex_code, sep = "\n")  # Display LaTeX code in console
+  return(latex_code)           # Return code for further processing if needed
+}
 
-# Marital status: 5 = Married, 1 = Cohabiting & 6 = Single
+# BATCH TABLE GENERATION FUNCTION
+# Utility function to generate all three required tables at once
+generate_all_tables = function(df) {
+  # Define the three marital status categories as specified in the problem set
+  status_list = list(
+    list(code = 5, name = "Married Women"),      # Marital status code 5
+    list(code = 1, name = "Cohabiting Women"),   # Marital status code 1
+    list(code = 6, name = "Single Women")        # Marital status code 6
+  )
+  
+  # Loop through each marital status and generate corresponding table
+  for(status_info in status_list) {
+    # Print progress indicators for user feedback
+    cat("\n", rep("=", 60), "\n")
+    cat("GENERATING TABLE FOR:", status_info$name, "\n")
+    cat(rep("=", 60), "\n")
+    
+    # Create standardized filename based on group name
+    filename = paste0(tolower(gsub(" ", "_", status_info$name)), "_table.tex")
+    # Generate the table
+    create_final_table(df, status_info$code, status_info$name, filename)
+    
+    cat("\nTable saved to:", filename, "\n")
+  }
+}
 
-Tables(df,5)
-Tables(df,1)
-Tables(df,6)
+# EXECUTION SECTION
+# Generate all tables using the batch function
+generate_all_tables(df)
+
+# Alternative: Generate tables individually with specific file paths (using 'here' package for path management)
+create_final_table(df, 5, "Married Women", here("Out", "married_women_final.tex"))
+create_final_table(df, 1, "Cohabiting Women", here("Out", "cohabiting_women_final.tex")) 
+create_final_table(df, 6, "Single Women", here("Out", "single_women_final.tex"))
 ```
 
 ### Item c
 ```{r, echo=FALSE}
-## household chores W
+## Household chores for Women
 df = sdem %>% 
-  filter(e_con %in% c(1,5),
-         sex == 2,
-         eda %in% 25:65,
-         par_c %in% c(101,201))
+  filter(e_con %in% c(1,5),        # Marital status: cohabiting or married
+         sex == 2,                 # Female
+         eda %in% 25:65,           # Age filter as in Code 1
+         par_c %in% c(101,201))    # Household head or spouse
 
-## household chores man
+## Household chores for Men
 dfM = sdem %>% 
-  filter(e_con %in% c(1,5),
-         sex == 1,
-         par_c %in% c(101,201))
+  filter(sex == 1,                 # Male - no marital status filter as in Code 1
+         par_c %in% c(101,201))    # Household head or spouse - no age filter as in Code 1
 
-# Removing unneeded df
+# Remove unneeded dataframe
 rm(sdem)
 
-# Cleaning memory
+# Clean memory
 gc()
 
-# Remove pairs with 2 W
+# Remove households with 2 women (duplicates)
 Aux = df %>% 
   group_by(cd_a, ent, con, v_sel, n_hog, h_mud, year) %>% 
   summarise(n = n()) %>% 
-  filter(n>1) 
+  filter(n > 1) 
 
 X = paste(df$cd_a, df$ent, df$con, df$v_sel,
            df$n_hog, df$h_mud, df$year)
 X2 = paste(Aux$cd_a, Aux$ent, Aux$con, Aux$v_sel,
             Aux$n_hog, Aux$h_mud, Aux$year)
 
-df = df[!X%in%X2,]
-
+df = df[!X %in% X2,]
 rm(X, X2, Aux)
 
+# Join with COE2 data if necessary (as in Code 1)
+if(exists("df2")) {
+  df = df %>% 
+    left_join(df2, by = c("cd_a", "ent", "con", "v_sel", "n_hog", "h_mud",
+                          "n_ren", "n_pro_viv", "year"))
+}
+
+# Handle missing values (NA treatment)
 df$p11_h2 = ifelse(is.na(df$p11_h2), 0, df$p11_h2)
 df$p11_h5 = ifelse(is.na(df$p11_h5), 0, df$p11_h5)
 df$p11_h7 = ifelse(is.na(df$p11_h7), 0, df$p11_h7)
@@ -281,38 +398,50 @@ df$p11_m2 = ifelse(is.na(df$p11_m2), 0, df$p11_m2)
 df$p11_m5 = ifelse(is.na(df$p11_m5), 0, df$p11_m5)
 df$p11_m7 = ifelse(is.na(df$p11_m7), 0, df$p11_m7)
 
+# Filter out "don't know" responses (code 98)
 df = df %>% 
   filter(p11_h2 != 98, p11_h5 != 98, p11_h7 != 98)
 
+# Handle "no response" codes (99) - convert to 0
 df$p11_h2 = ifelse(df$p11_h2 == 99 | is.na(df$p11_h2), 0, df$p11_h2)
 df$p11_h5 = ifelse(df$p11_h5 == 99 | is.na(df$p11_h5), 0, df$p11_h5)
 df$p11_h7 = ifelse(df$p11_h7 == 99 | is.na(df$p11_h7), 0, df$p11_h7)
 
-
-df$hhChores_W = ifelse(df$year < 2013,  df$p11_h2*60 + df$p11_m2 +
-                                         df$p11_h5*60 + df$p11_m5,0)
+# Calculate household chores time for women (in minutes)
+# Different variables used before and after 2013
+df$hhChores_W = ifelse(df$year < 2013, df$p11_h2*60 + df$p11_m2 +
+                                       df$p11_h5*60 + df$p11_m5, 0)
 df$hhChores_W = ifelse(df$year >= 2013, df$p11_h2*60 + df$p11_m2 +
-                                         df$p11_h7*60 + df$p11_m7, df$hhChores_W)
+                                        df$p11_h7*60 + df$p11_m7, df$hhChores_W)
 
+# Create histogram for women's household chores (in hours)
 df %>% 
   ggplot() +
-  geom_histogram(mapping = aes(hhChores_W/60))
+  geom_histogram(mapping = aes(hhChores_W/60)) +
+  labs(title = "Distribution of Women's Household Chores (Hours)")
 
-# Remove pairs with 2 M
+# Remove households with 2 men (duplicates)
 Aux = dfM %>% 
   group_by(cd_a, ent, con, v_sel, n_hog, h_mud, year) %>% 
   summarise(n = n()) %>% 
-  filter(n>1) 
+  filter(n > 1) 
 
 X = paste(dfM$cd_a, dfM$ent, dfM$con, dfM$v_sel,
            dfM$n_hog, dfM$h_mud, dfM$year)
 X2 = paste(Aux$cd_a, Aux$ent, Aux$con, Aux$v_sel,
             Aux$n_hog, Aux$h_mud, Aux$year)
 
-dfM = dfM[!X%in%X2,]
-
+dfM = dfM[!X %in% X2,]
 rm(X, X2, Aux)
 
+# Join with COE2 data for men if necessary
+if(exists("df2")) {
+  dfM = dfM %>% 
+    left_join(df2, by = c("cd_a", "ent", "con", "v_sel", "n_hog", "h_mud",
+                          "n_ren", "n_pro_viv", "year"))
+}
+
+# Handle missing values for men
 dfM$p11_h2 = ifelse(is.na(dfM$p11_h2), 0, dfM$p11_h2)
 dfM$p11_h5 = ifelse(is.na(dfM$p11_h5), 0, dfM$p11_h5)
 dfM$p11_h7 = ifelse(is.na(dfM$p11_h7), 0, dfM$p11_h7)
@@ -320,44 +449,57 @@ dfM$p11_m2 = ifelse(is.na(dfM$p11_m2), 0, dfM$p11_m2)
 dfM$p11_m5 = ifelse(is.na(dfM$p11_m5), 0, dfM$p11_m5)
 dfM$p11_m7 = ifelse(is.na(dfM$p11_m7), 0, dfM$p11_m7)
 
+# Filter out "don't know" responses for men
 dfM = dfM %>%
   filter(p11_h2 != 98, p11_h5 != 98, p11_h7 != 98)
 
+# Handle "no response" codes for men
 dfM$p11_h2 = ifelse(dfM$p11_h2 == 99 | is.na(dfM$p11_h2), 0, dfM$p11_h2)
 dfM$p11_h5 = ifelse(dfM$p11_h5 == 99 | is.na(dfM$p11_h5), 0, dfM$p11_h5)
 dfM$p11_h7 = ifelse(dfM$p11_h7 == 99 | is.na(dfM$p11_h7), 0, dfM$p11_h7)
 
-dfM$hhChores_M = ifelse(dfM$year < 2013,  dfM$p11_h2*60 + dfM$p11_m2 +
-                           dfM$p11_h5*60 + dfM$p11_m5,0)
-
+# Calculate household chores time for men (in minutes)
+dfM$hhChores_M = ifelse(dfM$year < 2013, dfM$p11_h2*60 + dfM$p11_m2 +
+                                         dfM$p11_h5*60 + dfM$p11_m5, 0)
 dfM$hhChores_M = ifelse(dfM$year >= 2013, dfM$p11_h2*60 + dfM$p11_m2 +
-                           dfM$p11_h7*60 + dfM$p11_m7, dfM$hhChores_M)
+                                          dfM$p11_h7*60 + dfM$p11_m7, dfM$hhChores_M)
 
+# Create histogram for men's household chores (in hours)
 dfM %>%
   ggplot() + 
-  geom_histogram(mapping = aes(hhChores_M/60))
+  geom_histogram(mapping = aes(hhChores_M/60)) +
+  labs(title = "Distribution of Men's Household Chores (Hours)")
 
+# Select necessary variables including wage and income variables
 dfM = dfM %>%
-  select(cd_a, ent, con, v_sel, n_hog, 
-                      h_mud, n_ren, n_pro_viv, year, hhChores_M)
+  select(cd_a, ent, con, v_sel, n_hog, h_mud, year, hhChores_M,
+         Wage, IngOcupYear)
 
-#### Join- W + M
+# Rename male wage columns to distinguish from female wages
+colnames(dfM)[9:10] = c("WageM", "IngOcupYearM")
+
+#### Join Women + Men datasets
 df = df %>%
   left_join(dfM, by = c("cd_a", "ent", "con", "v_sel", "n_hog", "h_mud", "year"))
 
+# Remove observations without male household chores data
 df = df[!is.na(df$hhChores_M),]
 
+# Analysis by marital status - Cohabiting couples
 df %>% filter(e_con == 1) %>%
   group_by(year) %>% 
   summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = T))
 
+# Analysis by marital status - Married couples
 df %>% filter(e_con == 5) %>%
   group_by(year) %>% 
   summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = T))
 
+# Create enhanced plot showing household chores ratio by marital status
 df %>% 
   group_by(year, e_con) %>% 
-  summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = TRUE)) %>%
+  summarise(Ratio = mean(hhChores_W/(hhChores_M + hhChores_W), na.rm = TRUE),
+            childCare = mean(p11_h2, na.rm = TRUE)) %>%
   mutate(status = case_when(
     e_con == 1 ~ "Cohabiting",
     T ~ "Married"
@@ -366,10 +508,71 @@ df %>%
   geom_point() +
   geom_line() + 
   theme_bw() +
-  labs(color = "Marital status") + 
+  labs(title = "Women's Share of Household Chores Over Time",
+       y = "Women's Share of Total Household Chores",
+       x = "Year",
+       color = "Marital Status") + 
   scale_x_continuous(breaks = unique(df$year))
 
-rm(df, dfM)
+# Additional plot for child care hours (as in Code 1)
+df %>% 
+  group_by(year, e_con) %>% 
+  summarise(childCare = mean(p11_h2, na.rm = T)) %>%
+  mutate(status = case_when(
+    e_con == 1 ~ "Cohabiting",
+    T ~ "Married"
+  )) %>% 
+  ggplot(aes(x = year, y = childCare, color = as.factor(status))) + 
+  geom_point() +
+  geom_line() + 
+  theme_bw() +
+  labs(title = "Child Care Hours Over Time",
+       y = "Child Care Hours", 
+       x = "Year",
+       color = "Marital Status") +
+  scale_x_continuous(breaks = unique(df$year))
+
+# Additional data cleaning - setup for advanced analysis (from Code 1)
+df$constant = 1
+dfMW = df %>% filter(e_con == 5)  # Married women
+dfCW = df %>% filter(e_con == 1)  # Cohabiting women
+
+# Calculate hourly wage and non-labor income
+dfCW = dfCW %>% 
+  mutate(HrlWage = ifelse(Employed == 1, Wage/(hrsocup*52), 0),
+         nonLaborInc = ifelse(Wage + WageM == 0,
+                              (IngOcupYear + IngOcupYearM)/52,
+                              WageM/52))
+
+dfMW = dfMW %>% 
+  mutate(HrlWage = ifelse(Employed == 1, Wage/(hrsocup*52), 0),
+         nonLaborInc = ifelse(Wage + WageM == 0,
+                              (IngOcupYear + IngOcupYearM)/52,
+                              WageM/52))
+
+# Trim the top 1% richest (outlier removal)
+dfMW = dfMW %>% 
+  filter(nonLaborInc < quantile(nonLaborInc, 0.99, na.rm = TRUE),
+         HrlWage < quantile(HrlWage, 0.99, na.rm = TRUE))
+
+dfCW = dfCW %>% 
+  filter(nonLaborInc < quantile(nonLaborInc, 0.99, na.rm = TRUE),
+         HrlWage < quantile(HrlWage, 0.99, na.rm = TRUE))
+
+# Additional cleaning filters
+dfCW = dfCW %>% 
+  filter(cs_p13_1 != 99,                    # Remove unknown education
+         n_hij != 99,                       # Remove unknown number of children
+         !((Employed == 1) & (Wage == 0)))  # Remove employed with zero wage
+
+dfMW = dfMW %>% 
+  filter(cs_p13_1 != 99,                    # Remove unknown education
+         n_hij != 99,                       # Remove unknown number of children
+         !((Employed == 1) & (Wage == 0)))  # Remove employed with zero wage
+
+# Final cleanup
+rm(df2, dfM, dfCW, dfMW)
+gc()
 ```
 
 ### Item d
@@ -383,24 +586,27 @@ GasEni = read_csv(here("Data/Raw", "gastoshogar.csv"))
 # Get Home Ownership
 VivEni = VivEni %>% 
   filter(tenencia != 6) %>%
-  mutate(homeownership = ifelse(tenencia %in% c(1,2,5), 0, 1))
+  mutate(homeownership = ifelse(tenencia %in% c(1,2,5), 0, 1)) %>%
+  select(folioviv, homeownership)  # Select only necessary columns as in Code 1
 
-# Get daycar, insurances, child care
-GasEni = GasEni %>% mutate(health_ins = ifelse(clave %in% c("J070", "J071", "J072"),
-                                                gasto_tri, 0),
-                            other_ins  = ifelse(clave %in% c("N008", "N009"),
-                                               gasto_tri, 0),
-                            child_care = ifelse(clave %in% c("E012"),
-                                                gasto_tri, 0),
-                            child_exp  = ifelse(!is.na(clave),
-                                                as.integer(clave == "E012"), NA),
-                            day_care = ifelse(clave %in% c("E008"),
-                                                gasto_tri, 0),
-                            day_exp  = ifelse(!is.na(clave),
-                                                as.integer(clave == "E008"), NA)
-                            )
+# Get daycare, insurances, child care
+GasEni = GasEni %>% 
+  mutate(health_ins = ifelse(clave %in% c("J070", "J071", "J072"),
+                             gasto_tri, 0),
+         other_ins  = ifelse(clave %in% c("N008", "N009"),
+                            gasto_tri, 0),
+         child_care = ifelse(clave %in% c("E012"),
+                            gasto_tri, 0),
+         child_exp  = ifelse(!is.na(clave),
+                            as.integer(clave == "E012"), NA),
+         day_care = ifelse(clave %in% c("E008"),
+                          gasto_tri, 0),
+         day_exp  = ifelse(!is.na(clave),
+                          as.integer(clave == "E008"), NA))
 
-GasH = GasEni %>% group_by(folioviv, foliohog) %>%
+# Aggregate household expenses by household
+GasH = GasEni %>% 
+  group_by(folioviv, foliohog) %>%
   summarise(health_ins = sum(health_ins, na.rm = T),
             other_ins  = sum(other_ins, na.rm = T),
             child_care = sum(child_care, na.rm = T),
@@ -408,39 +614,104 @@ GasH = GasEni %>% group_by(folioviv, foliohog) %>%
             day_care   = sum(day_care, na.rm = T),
             day_exp    = sum(day_exp, na.rm = T))
 
-PobH = PobEni %>% group_by(folioviv, foliohog) %>%
+# Handle missing values in worked hours (assuming NA means not working)
+PobEni = PobEni %>% 
+  mutate(hor_1 = ifelse(is.na(hor_1), 0, hor_1),
+         min_1 = ifelse(is.na(min_1), 0, min_1))
+
+# Create household-level demographic and work variables
+PobH = PobEni %>% 
+  group_by(folioviv, foliohog) %>%
   summarise(age_hhead = edad[which(parentesco == 101)],
             age_hspouse = first(edad[parentesco %in% c(201,202)]),
-            married = edo_conyug[which(parentesco == 101)])
+            married = edo_conyug[which(parentesco == 101)],
+            # Additional demographic variables from Code 1
+            sex_hhead = sexo[which(parentesco == 101)],
+            sex_hspouse = sexo[which(parentesco %in% c(201,202))],
+            # Work hours variables (convert to minutes)
+            hworked_hhead = 
+              hor_1[which(parentesco == 101)]*60 + min_1[which(parentesco == 101)],
+            hworked_hspouse = 
+              hor_1[which(parentesco %in% c(201,202))]*60 + min_1[which(parentesco %in% c(201,202))],
+            # Education variables
+            sch_hhead = nivelaprob[which(parentesco == 101)],
+            sch_hspouse = nivelaprob[which(parentesco %in% c(201,202))])
 
-ConcEni = ConcEni %>% left_join(VivEni, by = c("folioviv"))
+# Join all datasets
+ConcEni = ConcEni %>% 
+  left_join(VivEni, by = c("folioviv"))
 
-ConcEni = ConcEni %>% left_join(GasH, by = c("folioviv",
-                                              "foliohog"))
+ConcEni = ConcEni %>% 
+  left_join(GasH, by = c("folioviv", "foliohog"))
 
-ConcEni = ConcEni %>% left_join(PobH, by = c("folioviv",
-                                              "foliohog"))
+ConcEni = ConcEni %>% 
+  left_join(PobH, by = c("folioviv", "foliohog"))
 
+# Filter for nuclear households only
 ConcEni = ConcEni %>% 
   filter(clase_hog == 2)
 
-ConcEni = ConcEni %>% mutate(Income = ing_cor - ingtrab,
-                              Food =  ali_dentro + ali_fuera,
-                              Transportation = transporte,
-                              HealthService = salud,
-                              Utilities = pred_cons + agua + energia,
-                              Education = educacion,
-                              HouseKeeping = cuidados,
-                              Rent = ifelse(homeownership == 0, alquiler, estim_alqu),
-                              Insurance = health_ins + other_ins,
-                              Health_ins = health_ins,
-                              Home_ins = other_ins,
-                              Childc = day_care + child_care)
+# Create expense and income variables
+ConcEni = ConcEni %>% 
+  mutate(
+    # Non-labor income (quarterly to monthly conversion)
+    nonlabor_inc = (ing_cor - ingtrab)/3,
+    # Expense categories
+    food =  ali_dentro + ali_fuera,
+    transportation = transporte,
+    healthService = salud,
+    utilities = pred_cons + agua + energia,
+    education = educacion,
+    houseKeeping = cuidados,
+    # Rent calculation (actual rent or imputed rent)
+    rent = ifelse(homeownership == 0, alquiler, estim_alqu),
+    # Insurance categories
+    insurance = health_ins + other_ins,
+    health_ins = health_ins,
+    home_ins = other_ins,
+    # Child care expenses
+    childc = day_care + child_care
+  ) %>%
+  # Select all necessary variables (expanded from Code 1)
+  select(folioviv, foliohog, age_hhead, age_hspouse, married,
+         homeownership, sex_hhead, sex_hspouse, hworked_hhead,
+         hworked_hspouse, sch_hhead, sch_hspouse,
+         nonlabor_inc, ingtrab, food, transportation,
+         healthService, utilities, education, houseKeeping,
+         rent, insurance, health_ins, home_ins, childc)
 
-vars_to_summarise = c("Income", "Food", "Transportation", "HealthService", "Utilities", 
-                       "Education", "HouseKeeping", "Rent", "Insurance", "Health_ins", 
-                       "Home_ins", "Childc")
+# Data cleaning steps from Code 1
+# Remove observations with missing homeownership
+ConcEni = ConcEni %>% 
+  filter(!is.na(homeownership))
 
+# Remove top 1% richest households (outlier removal)
+ConcEni = ConcEni %>% 
+  filter(nonlabor_inc < quantile(nonlabor_inc, 0.99, na.rm = TRUE),
+         ingtrab < quantile(ingtrab, 0.99, na.rm = TRUE))
+
+# Create additional processed variables
+ConcEni = ConcEni %>%
+  mutate(
+    # Total consumption (quarterly to monthly conversion)
+    total_consumption = (food + transportation +
+      healthService + houseKeeping + health_ins +
+      home_ins + utilities + childc + education + rent) / 3,
+    # Convert work hours from minutes to hours
+    hworked_hhead = hworked_hhead/60,
+    hworked_hspouse = hworked_hspouse/60
+  )
+
+# Create separate datasets by marital status
+dfMM = ConcEni %>% filter(married == 2)  # Married couples
+dfCM = ConcEni %>% filter(married == 1)  # Cohabiting couples
+
+# Define variables for summary statistics
+vars_to_summarise = c("nonlabor_inc", "food", "transportation", "healthService", 
+                      "utilities", "education", "houseKeeping", "rent", 
+                      "insurance", "health_ins", "home_ins", "childc")
+
+# Create comprehensive summary table
 tabela_resumo = ConcEni %>%
   filter(married %in% c(1, 2)) %>%
   group_by(married) %>%
@@ -450,7 +721,17 @@ tabela_resumo = ConcEni %>%
                 Median = ~median(.x, na.rm = TRUE)))
   )
 
-tabela_resumo
+# Display summary table
+print(tabela_resumo)
+
+# Optional: Check for missing values in key variables
+# for (i in 1:ncol(dfMM)) {
+#   cat("Variable:", colnames(dfMM)[i], "- Missing values:", sum(is.na(dfMM[,i])), "\n")
+# }
+
+# Clean up environment
+rm(VivEni, GasEni, GasH, PobEni, PobH)
+gc()
 ```
 
 # Question 2
